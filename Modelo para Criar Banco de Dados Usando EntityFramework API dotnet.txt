@@ -1,0 +1,214 @@
+
+=============================================================================
+
+
+Passo 1 -
+Realize o 
+https://dotnet.microsoft.com/en-us/download
+
+===========================================
+
+.NET 6
+
+Microsoft .NET Why .NET Features Learn Docs Downloads Community LIVE TV
+
+Opção Downloads
+
+Download .NET SDK x64
+
+Passo 2-
+Instalar e chamar o professor para senha admin
+
+Passo 3- Aguardar a instalação
+
+===============================================
+
+Passo 4- Abrir o gitbash
+dotnet new --list
+
+===============================================
+
+
+Passo 5- Crie a API WEB 
+dotnet new webapi -o VoeAirlines
+dotnet new webapi -o PatrimonioSenaiTag
+
+==============================================
+
+Passo 6- Entre na pasta criada da API
+
+=============================================
+
+Passo 7- Rode a API (dotnet run)
+
+==============================================
+
+Passo 8 - Copie o endereço
+https://localhost:7028
+Cole o endereço no navegador
+ Avançado autorize
+
+================================================
+
+Passo 9 - Na url digite swagger
+https://localhost:7028/swagger/
+
+===============================================
+
+Passo 10- Verifique se apresentou a página
+
+=============================================
+
+Passo 11 - Volte para o gitbash
+e tecle CTRL+C para voltar para  a 
+linha de comando
+
+=============================================
+
+Digite
+code .
+Para abrir no vs code
+
+=============================================
+
+
+===================================================================
+
+Executar os comandos abaixo dentro do VS Code ( Terminal => Novo Terminal - Abrirá o
+Prompt
+
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+
+dotnet add package Microsoft.EntityFrameworkCore.Design
+
+====================  pasta - XXXXX.csproj ========================
+
+Após a execução dos comandos acima deverá aparecer no arquivo com extenção csproj
+
+exemplo:
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+  </ItemGroup>
+
+
+
+====================  pasta - Entities  ========================
+
+Criar pasta - Entities
+Criar arquivos cs - nome das tabelas => Nometabela.cs
+
+ver Exemplo:
+
+namespace PatrimonioSenaiTag.Entities;
+
+public class Nivel
+{
+    public Nivel(string nome)
+    {
+        Nome = nome;
+    }
+
+    public int Id { get; set; }
+    
+    public string Nome { get; set; }
+
+    public ICollection<Usuario> Usuarios { get; set; } = null!;
+    
+}
+
+======================= pasta EntityConfigurations ==========================
+
+Criar pasta EntityConfigurations
+Criar arquivos cs - nomeConfiguration.cs
+
+Ver Exemplo:
+
+using Microsoft.EntityFrameworkCore;
+using PatrimonioSenaiTag.Entities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace PatrimonioSenaiTag.EntityConfiguration;
+
+public class NivelConfiguration : IEntityTypeConfiguration<Nivel>
+ {
+    public void Configure(EntityTypeBuilder<Nivel> builder)
+    {
+        builder.ToTable("Nivel");
+        builder.HasKey(n => n.Id);
+        builder.Property(n => n.Nome)
+                .IsRequired()
+                .HasMaxLength(80);
+        builder.HasMany(n => n.Usuarios)
+               .WithOne(u => u.Nivel)
+               .HasForeignKey(u => u.NivelId);
+    }
+}
+====================  pasta Contexts ==============================
+
+Criar pasta Contexts
+Criar arquivo cx - nomeContext.cs
+
+Ver Exemplo:
+
+using Microsoft.EntityFrameworkCore;
+using PatrimonioSenaiTag.Entities;
+using PatrimonioSenaiTag.EntityConfiguration;
+
+namespace PatrimonioSenaiTag.Contexts;
+
+public class PatrimonioContext : DbContext
+{
+    private readonly IConfiguration _configuration;
+
+    public PatrimonioContext(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+    public DbSet<Nivel> Nivel => Set<Nivel>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
+
+    
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseSqlServer(_configuration.GetConnectionString("Patrimonio"));
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfiguration(new NivelConfiguration());
+        modelBuilder.ApplyConfiguration(new UsuarioConfiguration());
+
+    }
+  
+}
+===================  appsettings.json ===============================
+
+No json - appsettings.json criar a ConnectionStrongs
+  "ConnectionStrings": {
+   
+    "Patrimonio":"Server = DESKTOP-TK1T5HD; Database = PatrimonioSenaiTag; Uid = sa; Pwd = teste*123;"
+  },
+
+================================================================================
+
+Passos para criação da Migrations
+
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+
+dotnet add package Microsoft.EntityFrameworkCore.Design
+
+dotnet ef ==> se der erro executar comando abaixo
+
+dotnet tool install --global dotnet-ef
+
+dotnet ef migrations add EstruturaInicial ( Para gerar a pasta Migrations )
+
+dotnet ef database update ( Para criar o banco )
+
+Veja se gerou o Banco
+
